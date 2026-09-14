@@ -7,7 +7,7 @@ import type {
   ToolRetryPolicy,
   RuntimeEvent,
 } from "./lib/types";
-import { RunAbortedError, serializeError } from "./errors";
+import { RunAbortedError, ToolRequiresError, serializeError } from "./errors";
 
 type Emit = (event: RuntimeEvent) => void;
 
@@ -34,6 +34,39 @@ function resolveRetryPolicy(retry: ToolRetryPolicy) {
     maxRetries: retry.maxRetries ?? 3,
     delayMs: retry.delayMs ?? 300,
   };
+}
+
+export function withToolRequires<INPUT, OUTPUT>(
+  toolName: string,
+  runId: string,
+  t: Tool<INPUT, OUTPUT>,
+  requires: string[],
+  state: RunState,
+  emit: Emit,
+): Tool<INPUT, OUTPUT> {
+  return withToolMiddleware(t, (next) => {
+    const wrapped = async (
+      ...args: Parameters<ToolExecuteFunction<INPUT, OUTPUT>>
+    ) => {
+      const missing = requires.filter(
+        (dep) => !state.steps.some((step) => step.tool === dep && step.success),
+      );
+
+      if (missing.length > 0) {
+        emit({
+          type: "tool:blocked",
+          runId,
+          tool: toolName,
+          requires: missing,
+        });
+        throw new ToolRequiresError(toolName, missing);
+      }
+
+      return next(...args);
+    };
+
+    return wrapped as ToolExecuteFunction<INPUT, OUTPUT>;
+  });
 }
 
 export function withToolEvents<INPUT, OUTPUT>(
