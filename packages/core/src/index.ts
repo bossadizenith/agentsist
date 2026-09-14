@@ -1,16 +1,8 @@
 import type {
+  AgentDefinition,
+  AgentRunOptions,
+  AgentRunResult,
   CreateRunOptions,
-  RunState,
-  RuntimeConfig,
-  ToolRegistry,
-} from "./lib/types";
-import { resumeRun } from "./replay";
-import { createRunHandle, type RunHandle } from "./run";
-import { createInitialRunState, fileStorage } from "./storage-fs";
-
-export type {
-  CreateRunOptions,
-  ModelPricingKey,
   RunHooksOptions,
   RunState,
   RunStepFinishEvent,
@@ -18,49 +10,60 @@ export type {
   RuntimeConfig,
   RuntimeEvent,
   Step,
-  StepCostSnapshot,
   Storage,
   ToolPolicy,
   ToolRegistry,
   ToolRetryPolicy,
 } from "./lib/types";
+import type { Agent } from "./agent";
+import { resumeRun } from "./replay";
+import type { RunHandle } from "./run";
+import { createAgentsistRuntime } from "./runtime";
+
+export type {
+  AgentDefinition,
+  AgentRunOptions,
+  AgentRunResult,
+  AgentWorkflow,
+  CreateRunOptions,
+  ModelPricingKey,
+  ObserveConfig,
+  ObserveSnapshot,
+  RunFailure,
+  RunHooksOptions,
+  RunState,
+  RunStepFinishEvent,
+  RunSummary,
+  RuntimeConfig,
+  RuntimeEvent,
+  Span,
+  Step,
+  StepCostSnapshot,
+  Storage,
+  ToolPolicy,
+  ToolRegistry,
+  ToolRetryPolicy,
+};
+
+export type { Agent } from "./agent";
 export type { RunHandle } from "./run";
+export type { AgentsistRuntime } from "./runtime";
+
+export { resolvePrompt } from "./agent";
 export { calculateCost } from "./lib/cost";
 export { ModelPricing } from "./lib/const";
 export { GENERATION_COST_KEY, applyStepUsage } from "./lib/usage";
 export { resumeRun } from "./replay";
-
+export { RunAbortedError, ToolRequiresError } from "./errors";
 export { fileStorage, RunNotFoundError } from "./storage-fs";
 
-export function createRuntime(config: RuntimeConfig = {}) {
-  const storage = config.storage ?? fileStorage();
-  const emit = config.onEvent;
-
-  const internals = {
-    config,
-    emit,
-    save: (state: RunState) => storage.save(state),
-  };
-
-  return {
-    tools<TOOLS extends ToolRegistry>(registry: TOOLS): TOOLS {
-      return registry;
-    },
-
-    async createRun(options: CreateRunOptions) {
-      const state = createInitialRunState(options);
-      await storage.save(state);
-      return createRunHandle(state, internals);
-    },
-
-    async loadRun(runId: string) {
-      const state = await storage.load(runId);
-      return createRunHandle(state, internals);
-    },
-
-    async replayRun(runId: string, execute: (run: RunHandle) => Promise<void>) {
-      const run = await this.loadRun(runId);
-      await resumeRun(run, execute);
-    },
-  };
+export function agentsist(config: RuntimeConfig = {}) {
+  return createAgentsistRuntime(config);
 }
+
+/** @deprecated Use `agentsist()` */
+export function createRuntime(config: RuntimeConfig = {}) {
+  return createAgentsistRuntime(config);
+}
+
+export const runtime = agentsist();
