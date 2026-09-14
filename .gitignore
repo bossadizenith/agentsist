@@ -28,16 +28,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 *.tsbuildinfo
 
 # IntelliJ based IDEs
-.idea
-*report.md
-*Report.md
-*Bossadi
-*bossadi
-*Zenith.md
-*zenith
-*Bossadi_Zenith.md
-*bossadi_zenith
 
+/reports
 runs
 
 # Finder (MacOS) folder config
