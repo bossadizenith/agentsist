@@ -147,6 +147,8 @@ export function createRunHandle(
             state.messages.push({ role: "assistant", content: text });
           }
 
+          if (state.status !== "running") return;
+
           state.status = "completed";
           state.completedAt = new Date().toISOString();
           await saveState();

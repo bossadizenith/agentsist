@@ -238,9 +238,11 @@ export function withToolStateCapture<INPUT, OUTPUT>(
         return output;
       } catch (error) {
         const failedStepIndex = state.steps.length;
-        state.status = "error";
-        state.failedStepIndex = failedStepIndex;
-        state.completedAt = new Date().toISOString();
+        if (state.status === "running") {
+          state.status = "error";
+          state.failedStepIndex = failedStepIndex;
+          state.completedAt = new Date().toISOString();
+        }
         state.steps.push({
           toolCallId: call.toolCallId,
           tool: toolName,
