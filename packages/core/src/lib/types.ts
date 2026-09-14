@@ -120,6 +120,18 @@ export type Step = {
 
 export type RunStatus = "running" | "completed" | "error" | "interrupted";
 
+export type SpanStatus = "ok" | "error" | "blocked";
+
+export type Span = {
+  id: string;
+  type: "tool" | "llm";
+  name: string;
+  status: SpanStatus;
+  startedAt: string;
+  durationMs?: number;
+  error?: string;
+};
+
 export type RunState = {
   schemaVersion: 1;
   runId: string;
