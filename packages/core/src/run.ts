@@ -17,6 +17,7 @@ import {
   withRunGate,
   withToolCritical,
   withToolEvents,
+  withToolRequires,
   withToolRetry,
   withToolStateCapture,
 } from "./middleware";
@@ -81,6 +82,17 @@ export function createRunHandle(
         if (policy.retry) {
           tool = withToolRetry(name, state.runId, tool, policy.retry, (event) =>
             internals.emit?.(event),
+          );
+        }
+
+        if (policy.requires?.length) {
+          tool = withToolRequires(
+            name,
+            state.runId,
+            tool,
+            policy.requires,
+            state,
+            (event) => internals.emit?.(event),
           );
         }
 
