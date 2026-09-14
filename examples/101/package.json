@@ -5,6 +5,9 @@
   "private": true,
   "scripts": {
     "demo": "bun run demo.ts",
+    "demo:video": "bun run demo.ts --video",
+    "demo:a": "bun run demo.ts --video --only-a",
+    "demo:b": "bun run demo.ts --video --only-b",
     "start": "bun run index.ts"
   },
   "devDependencies": {

@@ -2,7 +2,7 @@ import { tool, type Tool } from "ai";
 
 export type ToolRunRecord = {
   tool: string;
-  status: "success" | "failure";
+  status: "success" | "failure" | "blocked";
   error?: string;
 };
 

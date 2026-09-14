@@ -8,7 +8,10 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
     "example:101": "bun run examples/101/index.ts",
-    "example:101:demo": "bun run examples/101/demo.ts"
+    "example:101:demo": "bun run examples/101/demo.ts",
+    "example:101:video": "bun run examples/101/demo.ts --video",
+    "example:101:video:a": "bun run examples/101/demo.ts --video --only-a",
+    "example:101:video:b": "bun run examples/101/demo.ts --video --only-b"
   },
   "devDependencies": {
     "@agentsist/eslint-config": "workspace:*",
