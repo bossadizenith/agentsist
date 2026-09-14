@@ -1,6 +1,6 @@
-import { runAgent } from "./lib/agent";
-import { DEFAULT_MODEL_ID, DEMO_TASK } from "./lib/const";
-import { runtime } from "./lib/runtime/instance";
+import { createResearchAgent } from "./agents/research-agent";
+import { DEMO_TASK } from "./lib/const";
+import { requireDemoEnv } from "./lib/require-env";
 
 function getReplayRunId(): string | undefined {
   const flagIndex = process.argv.indexOf("--replay");
@@ -15,15 +15,25 @@ function getReplayRunId(): string | undefined {
 }
 
 const main = async () => {
+  requireDemoEnv();
   const replayRunId = getReplayRunId();
+  const researchAgent = createResearchAgent();
 
   if (replayRunId) {
-    await runtime.replayRun(replayRunId, runAgent);
+    const run = await researchAgent.resume(replayRunId);
+    console.log(run.status, run.observe.traceId);
     return;
   }
 
-  const run = await runtime.createRun({ model: DEFAULT_MODEL_ID, query: DEMO_TASK });
-  await runAgent(run);
+  const run = await researchAgent.generate({
+    input: DEMO_TASK,
+    workflow: { name: "101-demo", runId: `run_${Date.now()}` },
+  });
+
+  console.log(JSON.stringify(run, null, 2));
 };
 
-main();
+main().catch((error) => {
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+});
