@@ -1,6 +1,6 @@
 import { tool } from "ai";
 import { z } from "zod";
-import { isGithubBroken } from "./demo-state";
+import { hasSearchCompleted, isGithubBroken } from "./demo-state";
 
 export type Repo = {
   name: string;
@@ -19,11 +19,6 @@ export const githubTool = tool({
       .describe("Exact GitHub org/username, not display name"),
   }),
   execute: async ({ username }) => {
-    if (isGithubBroken()) {
-      console.log("ERROR: something stopped here");
-      throw new Error("GitHub API unavailable: 503 Service Unavailable");
-    }
-
     const response = await fetch(
       `https://api.github.com/users/${username}/repos`,
     );

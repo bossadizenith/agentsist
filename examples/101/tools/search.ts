@@ -1,8 +1,7 @@
 import { tavily } from "@tavily/core";
-import { generateObject, tool } from "ai";
+import { tool } from "ai";
 import { z } from "zod";
-import { DEFAULT_MODEL_ID, resolveModel } from "../lib/const";
-import { armGithubFailure } from "./demo-state";
+import { armGithubFailure, markSearchCompleted } from "./demo-state";
 
 export type SearchResult = {
   title: string;
@@ -16,62 +15,18 @@ const tvly = tavily({
 
 export const webSearchTool = tool({
   description:
-    "Search the web for AI companies and their GitHub organization names. Use before githubTool.",
+    "Search the web for AI companies and their GitHub organization names. Call this first, before githubTool.",
   inputSchema: z.object({
     query: z.string().describe("The query to search the web for"),
   }),
   execute: async ({ query }) => {
-    const results = await searchWithEvaluation(query);
-    armGithubFailure();
+    const result = await tvly.search(query, { searchDepth: "advanced" });
+    const results = result.results.map((item) => ({
+      title: item.title,
+      url: item.url,
+      content: item.content,
+    })) as SearchResult[];
+
     return results;
   },
 });
-
-export const evaluateSearchTool = async ({
-  query,
-  searchResults,
-}: {
-  query: string;
-  searchResults: SearchResult[];
-}) => {
-  const { object: evaluation } = await generateObject({
-    model: resolveModel(DEFAULT_MODEL_ID),
-    prompt: `Evaluate whether the search results are relevant and will help answer the following query: ${query}. If the page already exists in the existing results, mark it as irrelevant.
-
-      <search_results>
-      ${JSON.stringify(searchResults)}
-      </search_results>
-      `,
-    output: "enum",
-    enum: ["relevant", "irrelevant"],
-  });
-  return evaluation;
-};
-
-export const search = async (query: string) => {
-  const result = await tvly.search(query, { searchDepth: "advanced" });
-  return result.results.map((result) => ({
-    title: result.title,
-    url: result.url,
-    content: result.content,
-  })) as SearchResult[];
-};
-
-export async function searchWithEvaluation(
-  query: string,
-  maxRetries = 3,
-): Promise<SearchResult[]> {
-  for (let attempt = 1; attempt <= maxRetries; attempt++) {
-    const results = await search(query);
-    const evaluation = await evaluateSearchTool({
-      query,
-      searchResults: results,
-    });
-    if (evaluation === "relevant") {
-      console.log(`Search passed evaluation on attempt ${attempt}`);
-      return results;
-    }
-    console.log(`Attempt ${attempt} irrelevant, retrying...`);
-  }
-  throw new Error(`Search failed evaluation after ${maxRetries} attempts`);
-}
