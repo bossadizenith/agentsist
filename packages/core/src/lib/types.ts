@@ -1,6 +1,8 @@
 import type {
+  LanguageModel,
   ModelMessage,
   OnStepFinishEvent,
+  StopCondition,
   ToolExecuteFunction,
   TypedToolCall,
   Tool,
@@ -145,6 +147,56 @@ export type Span = {
   startedAt: string;
   durationMs?: number;
   error?: string;
+};
+
+export type RunFailure = {
+  type: "execution" | "intent" | "policy";
+  reason: string;
+};
+
+export type ObserveSnapshot = {
+  traceId: string;
+  cost: {
+    totalUsd: number;
+    byTool: CostByTool;
+  };
+  spans: Span[];
+};
+
+export type AgentRunResult = {
+  id: string;
+  status: RunStatus;
+  failure?: RunFailure;
+  observe: ObserveSnapshot;
+  output?: string;
+  text?: string;
+};
+
+export type AgentWorkflow = {
+  name: string;
+  runId: string;
+};
+
+export type AgentRunOptions = {
+  input?: string;
+  prompt?: string | ModelMessage[];
+  messages?: ModelMessage[];
+  workflow?: AgentWorkflow;
+  sessionId?: string;
+  customer?: { id: string; name?: string };
+  metadata?: Record<string, string>;
+  stopWhen?: StopCondition<ToolSet>;
+  abortSignal?: AbortSignal;
+  providerOptions?: Record<string, Record<string, unknown>>;
+};
+
+export type AgentDefinition = {
+  name: string;
+  model: LanguageModel;
+  system?: string;
+  tools: ToolRegistry;
+  stopWhen?: StopCondition<ToolSet>;
+  providerOptions?: Record<string, Record<string, unknown>>;
 };
 
 export type RunState = {
