@@ -59,6 +59,14 @@ function normalizeRunState(raw: unknown): RunState {
     }
   }
 
+  if (!state.traceId) {
+    state.traceId = `trace_${state.runId}`;
+  }
+
+  if (!state.spans) {
+    state.spans = [];
+  }
+
   return state;
 }
 
@@ -74,19 +82,40 @@ function isEnoent(error: unknown): boolean {
 export function createInitialRunState({
   query,
   model,
+  agentName,
+  traceId,
+  workflowName,
+  workflowRunId,
+  sessionId,
+  metadata,
 }: {
   query: string;
   model: string;
+  agentName?: string;
+  traceId?: string;
+  workflowName?: string;
+  workflowRunId?: string;
+  sessionId?: string;
+  metadata?: Record<string, string>;
 }): RunState {
+  const runId = `run_${Date.now()}`;
+
   return {
     schemaVersion: 1,
-    runId: `run_${Date.now()}`,
+    runId,
     startDate: new Date().toISOString(),
     status: "running",
     steps: [] as Step[],
     query,
     model,
+    agentName,
+    traceId: traceId ?? `trace_${runId}`,
+    workflowName,
+    workflowRunId,
+    sessionId,
+    metadata,
     messages: [],
+    spans: [],
     costByTool: {},
     totalCostUsd: 0,
     totalTokens: 0,

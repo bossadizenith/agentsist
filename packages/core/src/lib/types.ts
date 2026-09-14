@@ -88,14 +88,29 @@ export type Storage = {
   load: (runId: string) => Promise<RunState>;
 };
 
+export type ObserveConfig = {
+  apiKey?: string;
+  project?: string;
+};
+
 export type RuntimeConfig = {
+  project?: string;
+  environment?: string;
+  observe?: ObserveConfig;
   onEvent?: (event: RuntimeEvent) => void;
+  onRunEvent?: (event: RuntimeEvent) => void;
   storage?: Storage;
 };
 
 export type CreateRunOptions = {
   query: string;
   model: string;
+  agentName?: string;
+  traceId?: string;
+  workflowName?: string;
+  workflowRunId?: string;
+  sessionId?: string;
+  metadata?: Record<string, string>;
 };
 
 export type ToolMiddlewareFunction<INPUT, OUTPUT> = (
@@ -137,12 +152,19 @@ export type RunState = {
   runId: string;
   query: string;
   model: string;
+  agentName?: string;
+  traceId: string;
+  workflowName?: string;
+  workflowRunId?: string;
+  sessionId?: string;
+  metadata?: Record<string, string>;
   startDate: string;
   completedAt?: string;
   status: RunStatus;
   failedStepIndex?: number;
   messages: ModelMessage[];
   steps: Step[];
+  spans: Span[];
   costByTool: CostByTool;
   totalCostUsd: number;
   totalTokens: number;
