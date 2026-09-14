@@ -48,6 +48,12 @@ export type RuntimeEvent =
       error: SerializedError;
     }
   | {
+      type: "tool:blocked";
+      runId: string;
+      tool: string;
+      requires: string[];
+    }
+  | {
       type: "run:complete";
       runId: string;
       summary: RunSummary;
@@ -72,6 +78,7 @@ export type ToolPolicy = {
   tool: Tool<any, any>;
   retry?: ToolRetryPolicy;
   critical?: boolean;
+  requires?: string[];
 };
 
 export type ToolRegistry = Record<string, ToolPolicy>;
